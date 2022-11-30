@@ -501,7 +501,27 @@ func setCustomPort(port int) {
 	}
 }
 
+// network is not connected
+func netOk() bool {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return false
+	}
+	for _, iface := range ifaces {
+		if iface.Name == "以太网" || iface.Name == "Ethernet" || iface.Name == "WLAN" {
+			if iface.Flags&net.FlagUp != 0 {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func getOutboundIP() net.IP {
+	if !netOk() {
+		return net.ParseIP("127.0.0.1")
+	}
+
 	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
 		// no net connectivity maybe so fallback
